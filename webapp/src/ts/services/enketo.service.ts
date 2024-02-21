@@ -473,11 +473,46 @@ export class EnketoService {
       .each((idx, element) => {
         const xpath = Xpath.getElementXPath(element);
         const $input: any = $('input[type=file][name="' + xpath + '"]');
-        const file = $input[0].files[0];
-        if (file) {
-          attach(element, file, file.type, false, xpath);
+        const inputElement = $input[0];
+        let file: File;
+
+        if (inputElement !== null && inputElement !== undefined && inputElement.files.length > 0 && inputElement.files[0] !== null && inputElement.files[0] !== undefined) {
+          file = inputElement.files[0];
+          if (file) {
+            attach(element, file, file.type, false, xpath);
+          }
+        } else {
+          try {
+            const canvasElement = <HTMLCanvasElement>document.querySelector('.draw-widget__body__canvas');
+            const imageDataURL = canvasElement.toDataURL('image/png');//convert to base64
+            const blob = dataURLtoBlob(imageDataURL);
+
+            const parts = xpath.split('/');
+            const tagName = parts[parts.length - 1];
+
+            file = new File([blob], '${tagName}.png', { type: 'image/png' });
+            if (file) {
+              attach(element, file, file.type, false, xpath);
+            }            
+          } catch (error) {
+            console.error("Error while processing draw widget data:", error);
+          }
         }
       });
+
+      function dataURLtoBlob(dataURL) {
+        const parts = dataURL.split(';base64,');
+        const contentType = parts[0].split(':')[1];
+        const byteString = atob(parts[1]);
+        const arrayBuffer = new ArrayBuffer(byteString.length);
+        const uint8Array = new Uint8Array(arrayBuffer);
+        
+        for (let i = 0; i < byteString.length; i++) {
+            uint8Array[i] = byteString.charCodeAt(i);
+        }
+    
+        return new Blob([arrayBuffer], { type: contentType });
+      }
 
     $record
       .find('[type=binary]')
