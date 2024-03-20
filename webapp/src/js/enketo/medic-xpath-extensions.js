@@ -1,9 +1,16 @@
 const RAW_NUMBER = /^(-?[0-9]+)(\.[0-9]+)?$/;
 const DATE_STRING = /^\d\d\d\d-\d{1,2}-\d{1,2}(?:T\d\d:\d\d:\d\d\.?\d?\d?(?:Z|[+-]\d\d:\d\d)|.*)?$/;
 const XPR = {
-  number: v => ({ t: 'num',  v }),
-  string: v => ({ t: 'str',  v }),
+  number: v => ({ t: 'num', v }),
+  string: v => ({ t: 'str', v }),
   date: v => ({ t: 'date', v }),
+};
+const TIME_UNIT = {
+  DAYS: 'days',
+  DAYS_REMAINING: 'days_remaining',
+  WEEKS: 'weeks',
+  MONTHS: 'months',
+  YEARS: 'years',
 };
 
 let zscoreUtil;
@@ -16,7 +23,7 @@ const isObject = (value) => {
   return value !== null && (type === 'object' || type === 'function');
 };
 
-const getValue = function(resultObject) {
+const getValue = function (resultObject) {
   if (!isObject(resultObject) || !resultObject.t) {
     return resultObject;
   }
@@ -29,7 +36,7 @@ const getValue = function(resultObject) {
   return resultObject.v;
 };
 
-const toISOLocalString = function(date) {
+const toISOLocalString = function (date) {
   if (date.toString() === 'Invalid Date') {
     return date.toString();
   }
@@ -41,9 +48,9 @@ const toISOLocalString = function(date) {
   return dt;
 };
 
-const getTimezoneOffsetAsTime = function(date) {
-  const pad2 = function(x) {
-    return ( x < 10 ) ? '0' + x : x;
+const getTimezoneOffsetAsTime = function (date) {
+  const pad2 = function (x) {
+    return (x < 10) ? '0' + x : x;
   };
 
   if (date.toString() === 'Invalid Date') {
@@ -110,7 +117,7 @@ const asMoment = (r) => {
       const time = `${rDate}T00:00:00.000${getTimezoneOffsetAsTime(new Date(rDate))}`;
       return moment(time);
     }
-    return rMoment;
+    return moment(r);
   }
   }
 };
@@ -138,16 +145,45 @@ const addDate = function (date, years, months, days, hours, minutes) {
     [hours, 'hours'],
     [minutes, 'minutes'],
   ].filter(([value]) => value)
-    .map(([value, name]) => ([ +asString(value), name ]))
+    .map(([value, name]) => ([+asString(value), name]))
     .filter(([value]) => value)
     .forEach(([value, name]) => moment.add(value, name));
   return XPR.date(moment.toDate());
 };
 
+const dateDiff = function (startDateStr, endDateStr, key) {
+  key = getValue(key);
+  if (!Object.values(TIME_UNIT).includes(key)) {
+    return XPR.string('');
+  }
+
+  const startDate = asMoment(startDateStr);
+  const endDate = asMoment(endDateStr);
+  if (!startDate.isValid() || !endDate.isValid()) {
+    return XPR.string('');
+  }
+
+  const totalDiffDays = endDate.diff(startDate, 'days');
+  const diffDays = totalDiffDays % 7;
+  const diffWeeks = Math.floor(totalDiffDays / 7);
+  const diffMonths = endDate.diff(startDate, 'months');
+  const diffYears = Math.floor(diffMonths / 12);
+
+  const values = {
+    [TIME_UNIT.DAYS]: totalDiffDays,
+    [TIME_UNIT.DAYS_REMAINING]: diffDays,
+    [TIME_UNIT.WEEKS]: diffWeeks,
+    [TIME_UNIT.MONTHS]: diffMonths,
+    [TIME_UNIT.YEARS]: diffYears
+  };
+
+  return XPR.number(values[key]);
+};
+
 module.exports = {
   getTimezoneOffsetAsTime: getTimezoneOffsetAsTime,
   toISOLocalString: toISOLocalString,
-  init: function(_zscoreUtil, _toBikramSambat, _moment, _chtScriptApi) {
+  init: function (_zscoreUtil, _toBikramSambat, _moment, _chtScriptApi) {
     zscoreUtil = _zscoreUtil;
     toBikramSambat = _toBikramSambat;
     moment = _moment;
@@ -155,8 +191,8 @@ module.exports = {
   },
   func: {
     'add-date': addDate,
-    'z-score': function() {
-      const args = Array.from(arguments).map(function(arg) {
+    'z-score': function () {
+      const args = Array.from(arguments).map(function (arg) {
         return getValue(arg);
       });
       const result = zscoreUtil.apply(null, args);
@@ -167,18 +203,12 @@ module.exports = {
     },
     'to-bikram-sambat': convertToBikramSambat,
     'parse-timestamp-to-date': parseTimestampToDate, // Function name convention of XForm
-    'difference-in-months': function(d1, d2) {
-      const d1Moment = asMoment(d1);
-      const d2Moment = asMoment(d2);
-
-      if (!d1Moment.isValid() || !d2Moment.isValid()) {
-        return XPR.string('');
-      }
-
-      const months = d2Moment.diff(d1Moment, 'months');
-      return XPR.number(months);
-    },
-    'cht:extension-lib': function() {
+    'difference-in-days': (d1, d2) => dateDiff(d1, d2, TIME_UNIT.DAYS),
+    'days-remaining-in-week': (d1, d2) => dateDiff(d1, d2, TIME_UNIT.DAYS_REMAINING),
+    'difference-in-weeks': (d1, d2) => dateDiff(d1, d2, TIME_UNIT.WEEKS),
+    'difference-in-months': (d1, d2) => dateDiff(d1, d2, TIME_UNIT.MONTHS),
+    'difference-in-years': (d1, d2) => dateDiff(d1, d2, TIME_UNIT.YEARS),
+    'cht:extension-lib': function () {
       const args = Array.from(arguments);
       const firstArg = args.shift();
       const libId = firstArg && firstArg.v;
@@ -190,7 +220,7 @@ module.exports = {
     }
   },
   process: {
-    toExternalResult: function(r) {
+    toExternalResult: function (r) {
       if (r.t === 'date') {
         return {
           resultType: XPathResult.STRING_TYPE,
