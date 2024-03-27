@@ -5,13 +5,15 @@ const XPR = {
   string: v => ({ t: 'str', v }),
   date: v => ({ t: 'date', v }),
 };
-const TIME_UNIT = {
-  DAYS: 'days',
-  DAYS_REMAINING: 'days_remaining',
-  WEEKS: 'weeks',
-  MONTHS: 'months',
+const MOMENT_KEYS = {
   YEARS: 'years',
+  MONTHS: 'months',
+  WEEKS: 'weeks',
+  DAYS: 'days',
+  HOURS: 'hours',
+  MINUTES: 'minutes',
 };
+const TIME_UNIT = Object.assign({}, MOMENT_KEYS, { DAYS_REMAINING: 'days_remaining' });
 
 let zscoreUtil;
 let toBikramSambat;
@@ -139,11 +141,11 @@ const addDate = function (date, years, months, days, hours, minutes) {
   }
   const moment = asMoment(date);
   [
-    [years, 'years'],
-    [months, 'months'],
-    [days, 'days'],
-    [hours, 'hours'],
-    [minutes, 'minutes'],
+    [years, MOMENT_KEYS.YEARS],
+    [months, MOMENT_KEYS.MONTHS],
+    [days, MOMENT_KEYS.DAYS],
+    [hours, MOMENT_KEYS.HOURS],
+    [minutes, MOMENT_KEYS.MINUTES],
   ].filter(([value]) => value)
     .map(([value, name]) => ([+asString(value), name]))
     .filter(([value]) => value)
