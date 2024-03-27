@@ -153,9 +153,6 @@ const addDate = function (date, years, months, days, hours, minutes) {
 
 const dateDiff = function (startDateStr, endDateStr, key) {
   key = getValue(key);
-  if (!Object.values(TIME_UNIT).includes(key)) {
-    return XPR.string('');
-  }
 
   const startDate = asMoment(startDateStr);
   const endDate = asMoment(endDateStr);
