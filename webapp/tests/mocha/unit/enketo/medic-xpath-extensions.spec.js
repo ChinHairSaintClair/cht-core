@@ -34,7 +34,7 @@ describe('medic-xpath-extensions', function () {
   });
 
   describe('#difference-in-days', function () {
-    const diffInDays = func['difference-in-days'];
+    const diffInDays = func['cht:difference-in-days'];
 
     it('should handle cases where end date is before start date and return negative number', function () {
       const result = diffInDays(wrapDate('2023-08-01'), wrapDate('2023-01-01'));
@@ -53,7 +53,7 @@ describe('medic-xpath-extensions', function () {
   });
 
   describe('#days-remaining-in-week', function () {
-    const daysRemaining = func['days-remaining-in-week'];
+    const daysRemaining = func['cht:days-remaining-in-week'];
     [
       ['2023-09-21', '2023-09-22', 1],
       ['2023-01-05', '2023-10-11', 6],
@@ -87,7 +87,7 @@ describe('medic-xpath-extensions', function () {
       const expectedDifference = example[2];
 
       it(`should report difference between ${d1.v} and ${d2.v} as ${expectedDifference}`, function () {
-        assert.equal(func['difference-in-months'](d1, d2).v, expectedDifference);
+        assert.equal(func['cht:difference-in-months'](d1, d2).v, expectedDifference);
       });
     });
 
@@ -128,7 +128,7 @@ describe('medic-xpath-extensions', function () {
   });
 
   describe('#difference-in-years', function () {
-    const daysRemaining = func['difference-in-years'];
+    const daysRemaining = func['cht:difference-in-years'];
 
     it('Should correctly calculate the difference in years', () => {
       const startDate = moment('2020-01-01');
