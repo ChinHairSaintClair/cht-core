@@ -61,106 +61,16 @@ describe('medic-xpath-extensions', function () {
 
   describe('#days-remaining-in-week', function () {
     const daysRemaining = func['days-remaining-in-week'];
-    const diffInWeeks = func['difference-in-weeks'];
-
-    it('should calculate the gestational age for a child that will be born this week', function () {
-      const startDate = '2023-09-21';
-      const endDate = '2023-09-22';
-      const daysInWeeks = 7;
-      const expectedDiffInDays = 1;
-      const gestationalAgeInDays = 6;
-      const suggestedGestationalPeriod = 40;
-      const expectedDiffInWeeks = 0;
-      const gestationalAgeInWeeks = 39;
-
-      const days_remaining = daysRemaining(wrapDate(startDate), wrapDate(endDate));
-      assert.deepStrictEqual(days_remaining.v, expectedDiffInDays);
-
-      // If the days are equal to zero then it's a full week and the days value is set to zero.
-      // Since dateDiff uses % 7 it will never return the value 7.
-      const days = (days_remaining.v !== 0) ? (daysInWeeks - days_remaining.v) : 0;
-      assert.equal(days, gestationalAgeInDays);
-
-      const weeks_remaining = diffInWeeks(wrapDate(startDate), wrapDate(endDate));
-      assert.deepStrictEqual(weeks_remaining.v, expectedDiffInWeeks);
-
-      const weeks = suggestedGestationalPeriod - (days > 0 ? weeks_remaining.v + 1 : weeks_remaining.v);
-      assert.equal(weeks, gestationalAgeInWeeks);
-    });
-
-    it('should calculate the gestational age for first week of pregnancy', function () {
-      const startDate = '2023-01-05';
-      const endDate = '2023-10-11';
-      const daysInWeeks = 7;
-      const expectedDiffInDays = 6;
-      const gestationalAgeInDays = 1;
-      const suggestedGestationalPeriod = 40;
-      const expectedDiffInWeeks = 39;
-      const gestationalAgeInWeeks = 0;
-
-      const days_remaining = daysRemaining(wrapDate(startDate), wrapDate(endDate));
-      assert.deepStrictEqual(days_remaining.v, expectedDiffInDays);
-
-      // If the days are equal to zero then it's a full week and the days value is set to zero.
-      // Since dateDiff uses % 7 it will never return the value 7.
-      const days = (days_remaining.v !== 0) ? (daysInWeeks - days_remaining.v) : 0;
-      assert.equal(days, gestationalAgeInDays);
-
-      const weeks_remaining = diffInWeeks(wrapDate(startDate), wrapDate(endDate));
-      assert.deepStrictEqual(weeks_remaining.v, expectedDiffInWeeks);
-
-      const weeks = suggestedGestationalPeriod - (days > 0 ? weeks_remaining.v + 1 : weeks_remaining.v);
-      assert.equal(weeks, gestationalAgeInWeeks);
-    });
-
-    it('should calculate the gestational age correctly (normal)', function () {
-      const startDate = '2023-02-05';
-      const endDate = '2023-11-01';
-      const daysInWeeks = 7;
-      const expectedDiffInDays = 3;
-      const gestationalAgeInDays = 4;
-      const suggestedGestationalPeriod = 40;
-      const expectedDiffInWeeks = 38;
-      const gestationalAgeInWeeks = 1;
-
-      const days_remaining = daysRemaining(wrapDate(startDate), wrapDate(endDate));
-      assert.deepStrictEqual(days_remaining.v, expectedDiffInDays);
-
-      // If the days are equal to zero then it's a full week and the days value is set to zero.
-      // Since dateDiff uses % 7 it will never return the value 7.
-      const days = (days_remaining.v !== 0) ? (daysInWeeks - days_remaining.v) : 0;
-      assert.equal(days, gestationalAgeInDays);
-
-      const weeks_remaining = diffInWeeks(wrapDate(startDate), wrapDate(endDate));
-      assert.deepStrictEqual(weeks_remaining.v, expectedDiffInWeeks);
-
-      const weeks = suggestedGestationalPeriod - (days > 0 ? weeks_remaining.v + 1 : weeks_remaining.v);
-      assert.equal(weeks, gestationalAgeInWeeks);
-    });
-
-    it('should calculate the gestational age with no remaining days', function () {
-      const startDate = '2023-02-05';
-      const endDate = '2023-10-29';
-      const daysInWeeks = 7;
-      const expectedDiffInDays = 0;
-      const gestationalAgeInDays = 0;
-      const suggestedGestationalPeriod = 40;
-      const expectedDiffInWeeks = 38;
-      const gestationalAgeInWeeks = 2;
-
-      const days_remaining = daysRemaining(wrapDate(startDate), wrapDate(endDate));
-      assert.deepStrictEqual(days_remaining.v, expectedDiffInDays);
-
-      // If the days are equal to zero then it's a full week and the days value is set to zero.
-      // Since dateDiff uses % 7 it will never return the value 7.
-      const days = (days_remaining.v !== 0) ? (daysInWeeks - days_remaining.v) : 0;
-      assert.equal(days, gestationalAgeInDays);
-
-      const weeks_remaining = diffInWeeks(wrapDate(startDate), wrapDate(endDate));
-      assert.deepStrictEqual(weeks_remaining.v, expectedDiffInWeeks);
-
-      const weeks = suggestedGestationalPeriod - (days > 0 ? weeks_remaining.v + 1 : weeks_remaining.v);
-      assert.equal(weeks, gestationalAgeInWeeks);
+    [
+      ['2023-09-21', '2023-09-22', 1],
+      ['2023-01-05', '2023-10-11', 6],
+      ['2023-02-05', '2023-11-01', 3],
+      ['2023-02-05', '2023-10-29', 0]
+    ].forEach(([startDate, endDate, expectedDiffInDays]) => {
+      it('should return the days remaining in the week', function () {
+        const days_remaining = daysRemaining(wrapDate(startDate), wrapDate(endDate));
+        assert.deepStrictEqual(days_remaining.v, expectedDiffInDays);
+      });
     });
   });
 
