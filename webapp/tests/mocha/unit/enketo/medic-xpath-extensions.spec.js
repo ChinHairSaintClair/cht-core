@@ -86,7 +86,7 @@ describe('medic-xpath-extensions', function () {
       const d2 = { t: 'str', v: example[1] };
       const expectedDifference = example[2];
 
-      it('should report difference between ' + d1.v + ' and ' + d2.v + ' as ' + expectedDifference, function () {
+      it(`should report difference between ${d1.v} and ${d2.v} as ${expectedDifference}`, function () {
         assert.equal(func['difference-in-months'](d1, d2).v, expectedDifference);
       });
     });
