@@ -6,17 +6,10 @@ const medicXpathExtensions = require('../../../../src/js/enketo/medic-xpath-exte
 medicXpathExtensions.init(null, toBik_text, moment);
 const func = medicXpathExtensions.func;
 
-const getTimezoneOffset = Date.prototype.getTimezoneOffset;
-
 describe('medic-xpath-extensions', function () {
   const wrapDate = (date) => { 
     return { t: 'str', v: date };
   };
-
-  afterEach(done => {
-    Date.prototype.getTimezoneOffset = getTimezoneOffset;
-    done();
-  });
 
   describe('getTimezoneOffsetAsTime()', function () {
     it('returns the time zone offset in hours when given a time zone difference in minutes', function () {
