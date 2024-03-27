@@ -151,11 +151,11 @@ const addDate = function (date, years, months, days, hours, minutes) {
   return XPR.date(moment.toDate());
 };
 
-const dateDiff = function (startDateStr, endDateStr, key) {
+const dateDiff = function (startDateObj, endDateObj, key) {
   key = getValue(key);
 
-  const startDate = asMoment(startDateStr);
-  const endDate = asMoment(endDateStr);
+  const startDate = asMoment(startDateObj);
+  const endDate = asMoment(endDateObj);
   if (!startDate.isValid() || !endDate.isValid()) {
     return XPR.string('');
   }
