@@ -13,7 +13,7 @@ const MOMENT_KEYS = {
   HOURS: 'hours',
   MINUTES: 'minutes',
 };
-const TIME_UNIT = Object.assign({}, MOMENT_KEYS, { DAYS_REMAINING: 'days_remaining' });
+const TIME_UNIT = {...MOMENT_KEYS, DAYS_REMAINING: 'days_remaining' };
 
 let zscoreUtil;
 let toBikramSambat;
