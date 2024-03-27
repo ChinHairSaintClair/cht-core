@@ -160,21 +160,11 @@ const dateDiff = function (startDateStr, endDateStr, key) {
     return XPR.string('');
   }
 
-  const totalDiffDays = endDate.diff(startDate, 'days');
-  const diffDays = totalDiffDays % 7;
-  const diffWeeks = Math.floor(totalDiffDays / 7);
-  const diffMonths = endDate.diff(startDate, 'months');
-  const diffYears = Math.floor(diffMonths / 12);
+  if (key === TIME_UNIT.DAYS_REMAINING) {
+    return XPR.number(endDate.diff(startDate, 'days') % 7);
+  }
 
-  const values = {
-    [TIME_UNIT.DAYS]: totalDiffDays,
-    [TIME_UNIT.DAYS_REMAINING]: diffDays,
-    [TIME_UNIT.WEEKS]: diffWeeks,
-    [TIME_UNIT.MONTHS]: diffMonths,
-    [TIME_UNIT.YEARS]: diffYears
-  };
-
-  return XPR.number(values[key]);
+  return XPR.number(endDate.diff(startDate, key));
 };
 
 module.exports = {
