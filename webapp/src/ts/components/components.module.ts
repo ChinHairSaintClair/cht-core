@@ -47,6 +47,7 @@ import { PanelHeaderComponent } from '@mm-components/panel-header/panel-header.c
 import { SidebarMenuComponent } from '@mm-components/sidebar-menu/sidebar-menu.component';
 import { ToolBarComponent } from '@mm-components/tool-bar/tool-bar.component';
 import { TrainingCardsFormComponent } from '@mm-components/training-cards-form/training-cards-form.component';
+import {DuplicateInfoComponent} from '@mm-components/duplicate-info/duplicate-info.component';
 
 @NgModule({
   declarations: [
@@ -78,6 +79,7 @@ import { TrainingCardsFormComponent } from '@mm-components/training-cards-form/t
     SidebarMenuComponent,
     TrainingCardsFormComponent,
     ToolBarComponent,
+    DuplicateInfoComponent,
   ],
   imports: [
     CommonModule,
@@ -122,6 +124,7 @@ import { TrainingCardsFormComponent } from '@mm-components/training-cards-form/t
     SidebarMenuComponent,
     TrainingCardsFormComponent,
     ToolBarComponent,
+    DuplicateInfoComponent,
   ]
 })
 export class ComponentsModule { }
