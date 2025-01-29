@@ -5,49 +5,42 @@ import { expect } from 'chai';
 import { DbService } from '@mm-services/db.service';
 import { ParseProvider } from '@mm-providers/parse.provider';
 import { XmlFormsContextUtilsService } from '@mm-services/xml-forms-context-utils.service';
-import { 
-  normalizedLevenshteinEq,
-  levenshteinEq,
-  requestSiblings,
-  extractExpression,
-  DEFAULT_CONTACT_DUPLICATE_EXPRESSION,
-  getDuplicates, 
-} from '../../../../../src/ts/services/utils/deduplicate';
+import {
+  DeduplicateService,
+  DEFAULT_CONTACT_DUPLICATE_EXPRESSION
+} from '@mm-services/deduplicate.service';
 
 describe('Deduplicate', () => {
-  let dbService;
   let query;
+  let service;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     query = sinon.stub();
-    dbService = {
+    const dbService = {
       get: () => ({ query })
     };
 
+    const pipesService: any = {
+      getPipeNameVsIsPureMap: sinon.stub().returns(new Map([['date', { pure: true }]])),
+      meta: sinon.stub(),
+      getInstance: sinon.stub(),
+    };
+    const parserProvider = new ParseProvider(pipesService);
+    const xmlFormsContextUtilsService = new XmlFormsContextUtilsService();
+
     TestBed.configureTestingModule({
       providers: [
-        { provide: DbService, useValue: dbService }
+        { provide: DbService, useValue: dbService },
+        { provide: ParseProvider, useValue: parserProvider},
+        { provide: XmlFormsContextUtilsService, useValue: xmlFormsContextUtilsService }
       ]
     });
+
+    service = TestBed.inject(DeduplicateService);
   });
 
   afterEach(() => {
     sinon.restore();
-  });
-
-  describe('normalizedLevenshteinEq', () => {
-    it('should return return a score of 3', () => {
-      // Score/distance / maxLength
-      // 3 (3 characters need to be added to make str1 = str2) / 5 (Test123 is the larger string)
-      // ~  0.42857142857142855
-      expect(normalizedLevenshteinEq('Test123', 'Test')).lessThanOrEqual(0.42857142857142855);
-    });
-  });
-
-  describe('levenshteinEq', () => {
-    it('should return return a score of 3', () => {
-      expect(levenshteinEq('Test123', 'Test')).to.equal(3);
-    });
   });
 
   describe('requestSiblings', () => {
@@ -60,7 +53,7 @@ describe('Deduplicate', () => {
         ],
         total_rows: 6
       });
-      const siblings = await requestSiblings(dbService, 'parent1', 'some_type');
+      const siblings = await service.requestSiblings('parent1', 'some_type');
       expect(siblings.length).to.equal(2);
       expect(siblings).to.deep.equal([
         { _id: 'sib1', name: 'Sibling1', parent: { _id: 'parent1' }, contact_type: 'some_type' },
@@ -71,22 +64,11 @@ describe('Deduplicate', () => {
 
   describe('extractExpression', () => {
     it('should return a default expression when none is provided', () => {
-      expect(extractExpression(undefined)).to.equal(DEFAULT_CONTACT_DUPLICATE_EXPRESSION);
+      expect(service.extractExpression(undefined)).to.equal(DEFAULT_CONTACT_DUPLICATE_EXPRESSION);
     });
   });
 
   describe('getDuplicates', () => {
-    let pipesService;
-    let parseProvider;
-    beforeEach(() => {
-      pipesService = {
-        getPipeNameVsIsPureMap: sinon.stub().returns(new Map([['date', { pure: true }]])),
-        meta: sinon.stub(),
-        getInstance: sinon.stub(),
-      };
-      parseProvider = new ParseProvider(pipesService);
-    });
-
     it('should return duplicates based on default matching', () => {
       const doc = {
         _id: 'new', 
@@ -125,14 +107,10 @@ describe('Deduplicate', () => {
           reported_date: 1736845534000 
         },
       ];
-      const results = getDuplicates(
+      const results = service.getDuplicates(
         doc,
         siblings,
-        {
-          expression: DEFAULT_CONTACT_DUPLICATE_EXPRESSION,
-          parseProvider,
-          xmlFormsContextUtilsService: new XmlFormsContextUtilsService()
-        }
+        DEFAULT_CONTACT_DUPLICATE_EXPRESSION,
       );
       expect(results.length).equal(2);
       expect(results).to.deep.equal([

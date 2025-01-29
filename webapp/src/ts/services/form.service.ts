@@ -26,9 +26,7 @@ import { reduce as _reduce } from 'lodash-es';
 import { ContactTypesService } from '@mm-services/contact-types.service';
 import { TargetAggregatesService } from '@mm-services/target-aggregates.service';
 import { ContactViewModelGeneratorService } from '@mm-services/contact-view-model-generator.service';
-import { ParseProvider } from '@mm-providers/parse.provider';
-import { XmlFormsContextUtilsService } from '@mm-services/xml-forms-context-utils.service';
-import { extractExpression, requestSiblings, getDuplicates, Doc, DuplicateCheck } from './utils/deduplicate';
+import { DeduplicateService, Doc, DuplicateCheck } from '@mm-services/deduplicate.service';
 
 /**
  * Service for interacting with forms. This is the primary entry-point for CHT code to render forms and save the
@@ -42,15 +40,15 @@ import { extractExpression, requestSiblings, getDuplicates, Doc, DuplicateCheck 
 export class FormService {
   constructor(
     private store: Store,
-    private contactSaveService:ContactSaveService,
+    private contactSaveService: ContactSaveService,
     private contactSummaryService: ContactSummaryService,
-    private contactTypesService:ContactTypesService,
+    private contactTypesService: ContactTypesService,
     private dbService: DbService,
     private fileReaderService: FileReaderService,
     private lineageModelGeneratorService: LineageModelGeneratorService,
     private submitFormBySmsService: SubmitFormBySmsService,
     private userContactService: UserContactService,
-    private userSettingsService:UserSettingsService,
+    private userSettingsService: UserSettingsService,
     private xmlFormsService: XmlFormsService,
     private zScoreService: ZScoreService,
     private trainingCardsService: TrainingCardsService,
@@ -61,8 +59,7 @@ export class FormService {
     private enketoService: EnketoService,
     private targetAggregatesService: TargetAggregatesService,
     private contactViewModelGeneratorService: ContactViewModelGeneratorService,
-    private readonly parseProvider: ParseProvider,
-    private readonly xmlFormsDuplicateUtilsService: XmlFormsContextUtilsService,
+    private deduplicateService: DeduplicateService
   ) {
     this.inited = this.init();
     this.globalActions = new GlobalActions(store);
@@ -170,7 +167,7 @@ export class FormService {
 
     try {
       this.unload(this.enketoService.getCurrentForm());
-      const [ doc, userSettings ] = await Promise.all([
+      const [doc, userSettings] = await Promise.all([
         this.transformXml(formDoc),
         this.userSettingsService.getWithLanguage()
       ]);
@@ -220,7 +217,7 @@ export class FormService {
       });
   }
 
-  private async getUserContact(requiresContact:boolean) {
+  private async getUserContact(requiresContact: boolean) {
     const contact = await this.userContactService.get();
     if (requiresContact && !contact) {
       const err: any = new Error('Your user does not have an associated contact, or does not have access to the ' +
@@ -331,37 +328,33 @@ export class FormService {
     }, null);
   }
 
-  async checkForDuplicates(doc, duplicateCheck, acknowledged) {
+  async checkForDuplicates(doc, acknowledged: boolean, duplicateCheck?: DuplicateCheck): Promise<Array<Doc>> {
     const parentId = doc ? doc.parent?._id : undefined;
     const contactType = doc ? doc.contact_type ?? doc.type : undefined;
-    const siblings = await requestSiblings(this.dbService, parentId, contactType);
-    const expression = extractExpression(duplicateCheck);
+    const expression = this.deduplicateService.extractExpression(duplicateCheck);
     const isCanonical = doc.is_canonical ? doc.is_canonical === 'true' : false;
     acknowledged = acknowledged ?? false;
 
-    if (!isCanonical && expression && !acknowledged){
-      const duplicates = getDuplicates(
-        doc, 
-        siblings, 
-        {
-          expression, 
-          parseProvider: this.parseProvider, 
-          xmlFormsContextUtilsService: this.xmlFormsDuplicateUtilsService
-        }
-      );
-      return duplicates;
+    if (isCanonical || !expression || acknowledged) {
+      return [];
     }
+
+    return this.deduplicateService.getDuplicates(
+      doc,
+      await this.deduplicateService.requestSiblings(parentId, contactType),
+      expression
+    );
   }
 
   async saveContact(
-    contactInfo: { 
-      form: any; 
-      docId: string| undefined;
+    contactInfo: {
+      form: any;
+      docId: string | undefined;
       type: string | undefined;
       xmlVersion: string | undefined;
-    }, 
-    duplicateCheck: DuplicateCheck, 
-    acknowledged: boolean
+    },
+    acknowledged: boolean,
+    duplicateCheck?: DuplicateCheck
   ) {
     const { form, docId, type, xmlVersion } = contactInfo;
     const typeFields = this.contactTypesService.isHardcodedType(type)
@@ -374,11 +367,12 @@ export class FormService {
     const primaryDoc = preparedDocs.preparedDocs.find(doc => doc.type === type);
 
     const duplicates = await this.checkForDuplicates(
-      primaryDoc || preparedDocs.preparedDocs[0], 
-      duplicateCheck, 
-      acknowledged
+      primaryDoc || preparedDocs.preparedDocs[0],
+      acknowledged,
+      duplicateCheck
     );
-    if (duplicates && duplicates.length > 0){
+    
+    if (duplicates.length) {
       throw new DuplicatesFoundError('Duplicates found', duplicates);
     }
 

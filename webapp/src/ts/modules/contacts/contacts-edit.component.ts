@@ -62,7 +62,7 @@ export class ContactsEditComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onNavigateToDuplicate(_id: string){
-    this.router.navigate(['/contacts', _id, 'edit']);
+    this.router.navigate(['/contacts', _id]);
   }
 
   duplicates: Duplicate[] = [];
@@ -164,10 +164,6 @@ export class ContactsEditComponent implements OnInit, OnDestroy, AfterViewInit {
   private async initForm() {
     this.contentError = false;
     this.errorTranslationKey = false;
-
-    // Reset when when navigated to duplicate
-    this.duplicates = [];
-    this.acknowledged = false;
 
     try {
       const contact = await this.getContact();
@@ -288,7 +284,7 @@ export class ContactsEditComponent implements OnInit, OnDestroy, AfterViewInit {
   private async renderForm(formId: string, titleKey: string) {
     const formDoc = await this.dbService.get().get(formId);
     this.xmlVersion = formDoc.xmlVersion;
-    this.duplicateCheck = formDoc.context?.duplicate_check;
+    this.duplicateCheck = formDoc.duplicate_check;
 
     this.globalActions.setEnketoEditedStatus(false);
 
@@ -345,7 +341,7 @@ export class ContactsEditComponent implements OnInit, OnDestroy, AfterViewInit {
         return this.formService
           .saveContact({
             form, docId, type: this.enketoContact.type, xmlVersion: this.xmlVersion
-          }, this.duplicateCheck, this.acknowledged)
+          }, this.acknowledged, this.duplicateCheck)
           .then((result) => {
             console.debug('saved contact', result);
 

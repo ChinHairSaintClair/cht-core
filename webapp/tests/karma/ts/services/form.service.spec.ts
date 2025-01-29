@@ -1711,7 +1711,7 @@ describe('Form service', () => {
       dbBulkDocs.resolves([]);
       clock = sinon.useFakeTimers(1000);
 
-      await service.saveContact({form, docId, type, xmlVersion: undefined}, undefined, true);
+      await service.saveContact({form, docId, type, xmlVersion: undefined}, true, undefined);
       assert.equal(transitionsService.applyTransitions.callCount, 1);
       assert.deepEqual(transitionsService.applyTransitions.args[0], [[
         { 
