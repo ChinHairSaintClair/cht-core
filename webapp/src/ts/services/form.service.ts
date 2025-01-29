@@ -59,7 +59,7 @@ export class FormService {
     private enketoService: EnketoService,
     private targetAggregatesService: TargetAggregatesService,
     private contactViewModelGeneratorService: ContactViewModelGeneratorService,
-    private deduplicateService: DeduplicateService
+    private readonly deduplicateService: DeduplicateService
   ) {
     this.inited = this.init();
     this.globalActions = new GlobalActions(store);

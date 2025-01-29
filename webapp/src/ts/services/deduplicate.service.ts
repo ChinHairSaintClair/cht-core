@@ -11,7 +11,7 @@ export type DuplicateCheck = { expression?: string; disabled?: boolean };
 })
 export class DeduplicateService {
   constructor(
-    private dbService: DbService,
+    private readonly dbService: DbService,
     private readonly parseProvider: ParseProvider,
     private readonly xmlFormsContextUtilsService: XmlFormsContextUtilsService,
   ) {}
@@ -28,7 +28,7 @@ export class DeduplicateService {
       endkey: [contactType, {}],
       include_docs: true
     }));
-    
+
     if (results) {
       siblings.push(...results.rows.map((row: { doc: Doc }) => row.doc));
     }
@@ -39,7 +39,7 @@ export class DeduplicateService {
   extractExpression (duplicateCheck?: DuplicateCheck) {
     if (duplicateCheck) {
       if (typeof duplicateCheck.expression === 'string') {
-        return duplicateCheck.expression as string;
+        return duplicateCheck.expression;
       } else if (duplicateCheck.disabled === true) {
         return null; // No duplicate check should be performed
       }

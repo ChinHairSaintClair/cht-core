@@ -38,7 +38,7 @@ export class XmlFormsContextUtilsService {
     return current && existing ? distance(current, existing) <= threshold : false;
   }
 
-  private _normalizedLevenshteinEq = (str1: string, str2: string) :number => {
+  private readonly _normalizedLevenshteinEq = (str1: string, str2: string) :number => {
     const maxLen = Math.max(str1.length, str2.length);
     return (maxLen === 0) ? 0 : (distance(str1, str2) / maxLen);
   };
