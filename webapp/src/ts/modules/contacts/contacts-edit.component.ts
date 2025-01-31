@@ -5,7 +5,7 @@ import { isEqual as _isEqual } from 'lodash-es';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { LineageModelGeneratorService } from '@mm-services/lineage-model-generator.service';
-import { FormService, DuplicatesFoundError, Duplicate } from '@mm-services/form.service';
+import { FormService, DuplicatesFoundError, Duplicate, DuplicatesCheck } from '@mm-services/form.service';
 import { EnketoFormContext } from '@mm-services/enketo.service';
 import { ContactTypesService } from '@mm-services/contact-types.service';
 import { DbService } from '@mm-services/db.service';
@@ -55,7 +55,7 @@ export class ContactsEditComponent implements OnInit, OnDestroy, AfterViewInit {
   private trackSave;
   private trackMetadata = { action: '', form: '' };
 
-  private duplicateCheck;
+  private duplicateCheck?: DuplicatesCheck;
   acknowledged = false;
   onAcknowledgeChange(value: boolean) {
     this.acknowledged = value;
@@ -362,7 +362,6 @@ export class ContactsEditComponent implements OnInit, OnDestroy, AfterViewInit {
           .catch((err) => {
             if (err instanceof DuplicatesFoundError){
               this.duplicates = err.duplicates;
-              err = Error(err.message);
             }
 
             console.error('Error submitting form data', err);

@@ -5,10 +5,7 @@ import { expect } from 'chai';
 import { DbService } from '@mm-services/db.service';
 import { ParseProvider } from '@mm-providers/parse.provider';
 import { XmlFormsContextUtilsService } from '@mm-services/xml-forms-context-utils.service';
-import {
-  DeduplicateService,
-  DEFAULT_CONTACT_DUPLICATE_EXPRESSION
-} from '@mm-services/deduplicate.service';
+import { DeduplicateService } from '@mm-services/deduplicate.service';
 
 describe('Deduplicate', () => {
   let query;
@@ -63,8 +60,26 @@ describe('Deduplicate', () => {
   });
 
   describe('extractExpression', () => {
-    it('should return a default expression when none is provided', () => {
-      expect(service.extractExpression(undefined)).to.equal(DEFAULT_CONTACT_DUPLICATE_EXPRESSION);
+    it('should return a default expression when no object is provided', () => {
+      expect(service.extractExpression(undefined)).to.equal('levenshteinEq(current.name, existing.name, 3)');
+    });
+
+    it('should return the "user defined" expression', () => {
+      const expression = 'levenshtein("current.phone_number", "existing.phone_number")';
+      expect(service.extractExpression({
+        expression
+      })).to.equal(expression);
+    });
+
+    it('should return null when a object with the expression and disabled properties is provided', () => {
+      expect(service.extractExpression({
+        expression: 'This should not be returned',
+        disabled: true,
+      })).to.equal(null);
+    });
+
+    it('should return a default expression when the object has no expression or disable property defined', () => {
+      expect(service.extractExpression({})).to.equal('levenshteinEq(current.name, existing.name, 3)');
     });
   });
 
@@ -110,7 +125,7 @@ describe('Deduplicate', () => {
       const results = service.getDuplicates(
         doc,
         siblings,
-        DEFAULT_CONTACT_DUPLICATE_EXPRESSION,
+        'levenshteinEq(current.name, existing.name, 3)',
       );
       expect(results.length).equal(2);
       expect(results).to.deep.equal([

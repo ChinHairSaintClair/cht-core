@@ -402,3 +402,4 @@ export class DuplicatesFoundError extends Error {
   }
 }
 export type Duplicate = Doc;
+export type DuplicatesCheck = DuplicateCheck;

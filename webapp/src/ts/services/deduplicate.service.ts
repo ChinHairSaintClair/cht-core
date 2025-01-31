@@ -3,8 +3,8 @@ import { DbService } from '@mm-services/db.service';
 import { ParseProvider } from '@mm-providers/parse.provider';
 import { XmlFormsContextUtilsService } from '@mm-services/xml-forms-context-utils.service';
 
-export type Doc = { _id: string; name: string; reported_date: number;[key: string]: any };
-export const DEFAULT_CONTACT_DUPLICATE_EXPRESSION = 'levenshteinEq(current.name, existing.name, 3)';
+export type Doc = { _id: string; name: string; reported_date: number; [key: string]: any };
+const DEFAULT_CONTACT_DUPLICATE_EXPRESSION = 'levenshteinEq(current.name, existing.name, 3)';
 export type DuplicateCheck = { expression?: string; disabled?: boolean };
 @Injectable({
   providedIn: 'root'
@@ -35,14 +35,13 @@ export class DeduplicateService {
     return siblings;
   }
   
-  
   extractExpression (duplicateCheck?: DuplicateCheck) {
     if (duplicateCheck) {
-      if (typeof duplicateCheck.expression === 'string') {
-        return duplicateCheck.expression;
-      } else if (duplicateCheck.disabled === true) {
+      if (duplicateCheck.disabled === true) {
         return null; // No duplicate check should be performed
-      }
+      } else if (typeof duplicateCheck.expression === 'string') {
+        return duplicateCheck.expression;
+      } 
     }
   
     return DEFAULT_CONTACT_DUPLICATE_EXPRESSION;

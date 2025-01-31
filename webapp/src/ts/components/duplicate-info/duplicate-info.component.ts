@@ -8,7 +8,7 @@ export class DuplicateInfoComponent {
   @Input() acknowledged: boolean = false;
   @Output() acknowledgedChange = new EventEmitter<boolean>();
   @Output() navigateToDuplicate = new EventEmitter<string>();
-  @Input() duplicates: { _id: string; name: string; reported_date: string | Date; [key: string]: string | Date }[] = [];
+  @Input() duplicates: { _id: string; name: string; reported_date: number; [key: string]: string | number }[] = [];
 
   toggleAcknowledged() {
     this.acknowledged = !this.acknowledged;
