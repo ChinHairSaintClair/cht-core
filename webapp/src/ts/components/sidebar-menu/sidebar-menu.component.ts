@@ -13,7 +13,7 @@ import { ModalService } from '@mm-services/modal.service';
 import { LogoutConfirmComponent } from '@mm-modals/logout/logout-confirm.component';
 import { FeedbackComponent } from '@mm-modals/feedback/feedback.component';
 import { PanelHeaderComponent } from '@mm-components/panel-header/panel-header.component';
-import { NgFor, NgIf } from '@angular/common';
+import { NgFor, NgIf, NgClass } from '@angular/common';
 import { AuthDirective } from '@mm-directives/auth.directive';
 import { MatIcon } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -32,6 +32,7 @@ import { RelativeDatePipe } from '@mm-pipes/date.pipe';
     AuthDirective,
     MatIcon,
     NgIf,
+    NgClass,
     TranslatePipe,
     RelativeDatePipe,
   ],
@@ -45,6 +46,11 @@ export class SidebarMenuComponent implements OnInit, OnDestroy {
   moduleOptions: MenuOption[] = [];
   secondaryOptions: MenuOption[] = [];
   adminAppPath: string = '';
+
+  storageInfo: string = 'Calculating...';
+  storageUsagePercentage: number = 0;
+  intervalId: any;
+  isUpdating: boolean = false;
 
   constructor(
     private store: Store,
@@ -62,10 +68,14 @@ export class SidebarMenuComponent implements OnInit, OnDestroy {
     this.setSecondaryOptions();
     this.subscribeToStore();
     this.subscribeToRouter();
+    this.intervalId = setInterval(() => this.updateStorageInfo(), 30000);
   }
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
   }
 
   close() {
@@ -179,6 +189,35 @@ export class SidebarMenuComponent implements OnInit, OnDestroy {
         click: () => this.openFeedback()
       },
     ];
+  }
+
+  async updateStorageInfo(): Promise<void> {
+    if (this.isUpdating){
+      return;
+    }
+    
+    this.isUpdating = true;
+    try {
+      const estimate = await navigator.storage.estimate();
+      const availableGB = ((estimate.quota! - estimate.usage!) / 1024 / 1024 / 1024).toFixed(2);
+      this.storageUsagePercentage = (estimate.usage! / estimate.quota!) * 100;
+
+      this.storageInfo = `Available Space: ${availableGB} GB`;
+    } catch (error) {
+      this.storageInfo = 'Error retrieving storage information.';
+      console.error('Storage estimate failed:', error);
+    } finally {
+      this.isUpdating = false;
+    }
+  }
+
+  get storagePressureClass(): string {
+    if (this.storageUsagePercentage < 50) {
+      return 'progress-bar-green';
+    } else if (this.storageUsagePercentage < 75) {
+      return 'progress-bar-yellow';
+    }
+    return 'progress-bar-red';
   }
 }
 
