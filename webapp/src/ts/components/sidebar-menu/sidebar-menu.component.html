@@ -23,8 +23,7 @@
           <span>{{ 'admin.app.name' | translate }}</span>
         </a>
 
-        
-        <a class="nav-item column" 
+        <a class="nav-item column storage-info"
           mmAuth 
           [mmAuthOnline]="false" 
           [class.disabled]="true">
@@ -41,7 +40,7 @@
                 aria-label="'Used storage: ' + storageUsagePercentage.toFixed(2) + '%'">
               </div>
             </div>
-            <span>{{storageInfo}}</span>
+            <span>Available space: {{availableStorageSpace}}</span>
           </div>
         </a>
       </div>
