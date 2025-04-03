@@ -38,7 +38,6 @@ import { TargetAggregatesService } from '@mm-services/target-aggregates.service'
 import { ContactViewModelGeneratorService } from '@mm-services/contact-view-model-generator.service';
 import { DeduplicateService } from '@mm-services/deduplicate.service';
 import { ContactsService } from '@mm-services/contacts.service';
-import { Contact } from '@medic/cht-datasource';
 
 describe('Form service', () => {
   // return a mock form ready for putting in #dbContent
