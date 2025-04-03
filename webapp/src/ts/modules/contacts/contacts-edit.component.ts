@@ -220,11 +220,13 @@ export class ContactsEditComponent implements OnInit, OnDestroy, AfterViewInit {
       .then((result) => result.doc);
   }
 
-  private async getDeduplicationMessage(entityType: string) {
-    const typedKey = `duplicate_check.contact.${entityType}.duplication_message`;
-    const typedMessage = await this.translateService.get(typedKey);
-    if (typedMessage !== typedKey) {
-      return typedMessage;
+  private async getDeduplicationMessage(entityType?: string) {
+    if (entityType) {
+      const typedKey = `duplicate_check.contact.${entityType}.duplication_message`;
+      const typedMessage = await this.translateService.get(typedKey);
+      if (typedMessage !== typedKey) {
+        return typedMessage;
+      }
     }
 
     return this.translateService.get('duplicate_check.contact.duplication_message');

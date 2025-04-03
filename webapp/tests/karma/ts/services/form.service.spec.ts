@@ -20,7 +20,7 @@ import { EnketoPrepopulationDataService } from '@mm-services/enketo-prepopulatio
 import { AttachmentService } from '@mm-services/attachment.service';
 import { XmlFormsService } from '@mm-services/xml-forms.service';
 import { ZScoreService } from '@mm-services/z-score.service';
-import { FormService, WebappEnketoFormContext } from '@mm-services/form.service';
+import { DuplicatesFoundError, FormService, WebappEnketoFormContext } from '@mm-services/form.service';
 import { ServicesActions } from '@mm-actions/services';
 import { ContactSummaryService } from '@mm-services/contact-summary.service';
 import { TransitionsService } from '@mm-services/transitions.service';
@@ -38,6 +38,7 @@ import { TargetAggregatesService } from '@mm-services/target-aggregates.service'
 import { ContactViewModelGeneratorService } from '@mm-services/contact-view-model-generator.service';
 import { DeduplicateService } from '@mm-services/deduplicate.service';
 import { ContactsService } from '@mm-services/contacts.service';
+import { Contact } from '@medic/cht-datasource';
 
 describe('Form service', () => {
   // return a mock form ready for putting in #dbContent
@@ -1614,46 +1615,32 @@ describe('Form service', () => {
       dbBulkDocs.resolves([]);
       clock = sinon.useFakeTimers(1000);
 
-      contactsService.getSiblings.resolves([{
-        _id: 'sib1',
-        name: 'Sibling1',
-        parent: { _id: 'parent1' },
-        type,
-        reported_date: 1736845534000
-      },
-      {
-        _id: 'sib2',
-        name: 'Sibling2',
-        parent: { _id: 'parent1' },
-        type,
-        reported_date: 1736845534000
-      },]);
+      const duplicates = [
+        {
+          _id: 'sib1',
+          name: 'Sibling1',
+          parent: { _id: 'parent1' },
+          type,
+          reported_date: 1736845534000
+        },
+        {
+          _id: 'sib2',
+          name: 'Sibling2',
+          parent: { _id: 'parent1' },
+          type,
+          reported_date: 1736845534000
+        }
+      ];
+      contactsService.getSiblings.resolves(duplicates);
 
-      try {
-        await service.saveContact({ docId, type, }, { form, xmlVersion: undefined, duplicateCheck: undefined }, false);
-        // Fail the test if no error is thrown
-        throw new Error('Expected saveContact to throw an error, but it did not.');
-      } catch (e) {
-        expect(e.message).to.include('Duplicates found');
-        expect(e.duplicates).to.have.lengthOf(2);
-        expect(e.duplicates).to.deep.equal([
-          {
-            _id: 'sib1',
-            name: 'Sibling1',
-            parent: { _id: 'parent1' },
-            type,
-            reported_date: 1736845534000
-          },
-          {
-            _id: 'sib2',
-            name: 'Sibling2',
-            parent: { _id: 'parent1' },
-            type,
-            reported_date: 1736845534000
-          }
-        ]);
-      }
+      await expect(service.saveContact(
+        { docId, type, },
+        { form, xmlVersion: undefined, duplicateCheck: undefined },
+        false
+      )).to.be.rejectedWith(DuplicatesFoundError, 'Duplicates found')
+        .and.eventually.have.property('duplicates', duplicates);
     });
+
     it('should pass duplicate check when duplicates are acknowledged', async function () {
       const form = { getDataStr: () => '<data></data>' };
       const docId = null;

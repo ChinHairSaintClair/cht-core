@@ -178,7 +178,50 @@ describe('ContactsEdit component', () => {
       expect(setShowContent.args).to.deep.equal([[true]]);
       expect(unsetSelected.callCount).to.equal(1);
       expect(settingSelected.callCount).to.equal(1);
+      expect(translateService.get.calledOnceWithExactly('duplicate_check.contact.duplication_message')).to.be.true;
     }));
+
+    it('should initialize duplicate message with default if none configured for contact type', async () => {
+      routeSnapshot.params = { id: 'the_patient' };
+      lineageModelGeneratorService.contact.resolves({
+        doc: {
+          _id: 'the_patient',
+          type: 'patient',
+        },
+      });
+
+      await createComponent();
+      await fixture.whenStable();
+
+      expect(component.duplicateMessage).to.equal('duplicate_check.contact.duplication_message');
+      expect(component.routeSnapshot).to.equal(routeSnapshot);
+      expect(lineageModelGeneratorService.contact.calledOnceWithExactly('the_patient', { merge: true })).to.be.true;
+      expect(translateService.get.args).to.deep.equal([
+        ['duplicate_check.contact.patient.duplication_message'],
+        ['duplicate_check.contact.duplication_message']
+      ]);
+    });
+
+    it('should initialize duplicate message with configured contact type message', async () => {
+      routeSnapshot.params = { id: 'the_patient' };
+      lineageModelGeneratorService.contact.resolves({
+        doc: {
+          _id: 'the_patient',
+          type: 'patient',
+        },
+      });
+      translateService.get = sinon.stub().resolves('Contact type duplicate message');
+
+      await createComponent();
+      await fixture.whenStable();
+
+      expect(component.duplicateMessage).to.equal('Contact type duplicate message');
+      expect(component.routeSnapshot).to.equal(routeSnapshot);
+      expect(lineageModelGeneratorService.contact.calledOnceWithExactly('the_patient', { merge: true })).to.be.true;
+      expect(translateService.get.calledOnceWithExactly(
+        'duplicate_check.contact.patient.duplication_message'
+      )).to.be.true;
+    });
 
     it('should unsubscribe on destroy', async () => {
       await createComponent();
@@ -861,8 +904,8 @@ describe('ContactsEdit component', () => {
     });
   });
 
-  describe('toggleDuplicatesAcknowledged', () => {
-    it('should set acknowledge to true', async () => {
+  describe('toggleDuplicatesAcknowledged ', () => {
+    it('toggleDuplicatesAcknowledged - should set acknowledge to true', async () => {
       routeSnapshot.params = { type: 'clinic', parent_id: 'the_district' };
       contactTypesService.getChildren.resolves([{ id: 'clinic' }]);
       contactTypesService.get.resolves({
@@ -877,17 +920,31 @@ describe('ContactsEdit component', () => {
         validate: sinon.stub().resolves(true),
       };
       formService.render.resolves(form);
+      const setEnketoError = sinon.stub(GlobalActions.prototype, 'setEnketoError');
       await createComponent();
       await fixture.whenStable();
+      expect(component.duplicatesAcknowledged).to.equal(false);
 
+      component.enketoError = new DuplicatesFoundError('Duplicates found', []);
       component.toggleDuplicatesAcknowledged();
+
+      expect(setEnketoError.calledOnceWithExactly(null)).to.be.true;
       formService.saveContact.resolves({ docId: 'new_clinic_id' });
+
       await component.save();
+
+      expect(component.duplicatesAcknowledged).to.equal(true);
       expect(formService.saveContact.args[0]).to.deep.equal([
-        { docId: null, type: 'clinic' }, 
+        { docId: null, type: 'clinic' },
         { form, xmlVersion: undefined, duplicateCheck: undefined },
         true
       ]);
+      setEnketoError.resetHistory();
+
+      component.toggleDuplicatesAcknowledged();
+
+      expect(component.duplicatesAcknowledged).to.equal(false);
+      expect(setEnketoError.notCalled).to.be.true;
     });
   });
 });
