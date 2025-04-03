@@ -6,6 +6,8 @@ import { ParseProvider } from '@mm-providers/parse.provider';
 import { XmlFormsContextUtilsService } from '@mm-services/xml-forms-context-utils.service';
 import { DeduplicateService } from '@mm-services/deduplicate.service';
 import { PipesService } from '@mm-services/pipes.service';
+import { ContactTypesService } from '@mm-services/contact-types.service';
+import { TelemetryService } from '@mm-services/telemetry.service';
 
 const CONTACT = {
   _id: 'new',
@@ -53,8 +55,16 @@ const SIBLINGS = [
 
 describe('Deduplicate', () => {
   let service;
+  let contactTypesService;
+  let telemetryService;
 
   beforeEach(async () => {
+    contactTypesService = {
+      getTypeId: sinon.stub().callsFake(({ contact_type }) => contact_type),
+    };
+    telemetryService = {
+      record: sinon.stub(),
+    };
     const pipesService: any = {
       getPipeNameVsIsPureMap: sinon.stub().returns(new Map()),
       meta: sinon.stub(),
@@ -62,8 +72,10 @@ describe('Deduplicate', () => {
     };
     TestBed.configureTestingModule({
       providers: [
+        { provide: ContactTypesService, useValue: contactTypesService },
         ParseProvider,
         { provide: PipesService, useValue: pipesService },
+        { provide: TelemetryService, useValue: telemetryService },
         XmlFormsContextUtilsService,
       ]
     });
@@ -77,16 +89,22 @@ describe('Deduplicate', () => {
     it('should return duplicates based on default matching', () => {
       const results = service.getDuplicates(CONTACT, SIBLINGS);
       expect(results).to.deep.equal([SIBLINGS[1], SIBLINGS[0]]);
+      expect(contactTypesService.getTypeId.calledOnceWithExactly(CONTACT)).to.be.true;
+      expect(telemetryService.record.calledOnceWithExactly('enketo:contacts:some_type:duplicates_found', 2)).to.be.true;
     });
 
     it('should return duplicates based on default matching with invalid expression', () => {
       const results = service.getDuplicates(CONTACT, SIBLINGS, { expression: true });
       expect(results).to.deep.equal([SIBLINGS[1], SIBLINGS[0]]);
+      expect(contactTypesService.getTypeId.calledOnceWithExactly(CONTACT)).to.be.true;
+      expect(telemetryService.record.calledOnceWithExactly('enketo:contacts:some_type:duplicates_found', 2)).to.be.true;
     });
 
     it('should not return duplicates when the expression is disabled', () => {
       const results = service.getDuplicates(CONTACT, SIBLINGS, { disabled: true });
       expect(results).to.be.empty;
+      expect(contactTypesService.getTypeId.calledOnceWithExactly(CONTACT)).to.be.true;
+      expect(telemetryService.record.calledOnceWithExactly('enketo:contacts:some_type:duplicates_found', 0)).to.be.true;
     });
 
     it('should return duplicates for custom expression', () => {
@@ -96,6 +114,8 @@ describe('Deduplicate', () => {
         { expression: 'current.reported_date === existing.reported_date' }
       );
       expect(results).to.deep.equal([SIBLINGS[3]]);
+      expect(contactTypesService.getTypeId.calledOnceWithExactly(CONTACT)).to.be.true;
+      expect(telemetryService.record.calledOnceWithExactly('enketo:contacts:some_type:duplicates_found', 1)).to.be.true;
     });
   });
 });

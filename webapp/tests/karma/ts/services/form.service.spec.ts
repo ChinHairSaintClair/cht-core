@@ -38,6 +38,7 @@ import { TargetAggregatesService } from '@mm-services/target-aggregates.service'
 import { ContactViewModelGeneratorService } from '@mm-services/contact-view-model-generator.service';
 import { DeduplicateService } from '@mm-services/deduplicate.service';
 import { ContactsService } from '@mm-services/contacts.service';
+import { PerformanceService } from '@mm-services/performance.service';
 
 describe('Form service', () => {
   // return a mock form ready for putting in #dbContent
@@ -99,6 +100,8 @@ describe('Form service', () => {
   let deduplicateService;
   let getDuplicates;
   let contactsService;
+  let performanceService;
+  let performanceTracking;
 
   beforeEach(() => {
     enketoInit = sinon.stub();
@@ -172,6 +175,8 @@ describe('Form service', () => {
     getDuplicates = sinon.stub();
     deduplicateService = { getDuplicates };
     contactsService = { getSiblings };
+    performanceTracking = { stop: sinon.stub() };
+    performanceService = { track: sinon.stub().returns(performanceTracking) };
 
     TestBed.configureTestingModule({
       providers: [
@@ -204,7 +209,8 @@ describe('Form service', () => {
         { provide: TargetAggregatesService, useValue: targetAggregatesService },
         { provide: ContactViewModelGeneratorService, useValue: contactViewModelGeneratorService },
         { provide: DeduplicateService, useValue: deduplicateService },
-        { provide: ContactsService, useValue: contactsService }
+        { provide: ContactsService, useValue: contactsService },
+        { provide: PerformanceService, useValue: performanceService },
       ],
     });
 
@@ -1638,6 +1644,10 @@ describe('Form service', () => {
         false
       )).to.be.rejectedWith(DuplicatesFoundError, 'Duplicates found')
         .and.eventually.have.property('duplicates', duplicates);
+      expect(performanceService.track.calledOnceWithExactly()).to.be.true;
+      expect(performanceTracking.stop.calledOnceWithExactly({
+        name: `enketo:contacts:${type}:duplicate_check`
+      })).to.be.true;
     });
 
     it('should pass duplicate check when duplicates are acknowledged', async function () {
@@ -1687,6 +1697,8 @@ describe('Form service', () => {
           transitioned: true
         }
       ]]);
+      expect(performanceService.track.notCalled).to.be.true;
+      expect(performanceTracking.stop.notCalled).to.be.true;
     });
   });
 

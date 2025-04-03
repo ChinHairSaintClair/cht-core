@@ -29,6 +29,7 @@ import { ContactViewModelGeneratorService } from '@mm-services/contact-view-mode
 import { Nullable, Person, Contact } from '@medic/cht-datasource';
 import { DeduplicateService, DuplicateCheck } from '@mm-services/deduplicate.service';
 import { ContactsService } from '@mm-services/contacts.service';
+import { PerformanceService } from '@mm-services/performance.service';
 
 /**
  * Service for interacting with forms. This is the primary entry-point for CHT code to render forms and save the
@@ -62,7 +63,8 @@ export class FormService {
     private targetAggregatesService: TargetAggregatesService,
     private contactViewModelGeneratorService: ContactViewModelGeneratorService,
     private readonly deduplicateService: DeduplicateService,
-    private readonly contactsService: ContactsService
+    private readonly contactsService: ContactsService,
+    private readonly performanceService: PerformanceService,
   ) {
     this.inited = this.init();
     this.globalActions = new GlobalActions(store);
@@ -340,13 +342,20 @@ export class FormService {
     duplicatesAcknowledged: boolean,
     duplicateCheck?: DuplicateCheck
   ): Promise<Array<Contact.v1.Contact>> {
-    duplicatesAcknowledged = duplicatesAcknowledged ?? false;
+    if (duplicatesAcknowledged) {
+      return [];
+    }
 
-    return !duplicatesAcknowledged ? this.deduplicateService.getDuplicates(
-      doc,
-      await this.contactsService.getSiblings(doc),
-      duplicateCheck
-    ) : [];
+    const perfTracking = this.performanceService.track();
+
+    try {
+      const siblings = await this.contactsService.getSiblings(doc);
+      return this.deduplicateService.getDuplicates(doc, siblings, duplicateCheck);
+    } finally {
+      perfTracking?.stop({
+        name: ['enketo', 'contacts', this.contactTypesService.getTypeId(doc), 'duplicate_check'].join(':')
+      });
+    }
   }
 
   async saveContact(
