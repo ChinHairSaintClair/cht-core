@@ -3,7 +3,6 @@ import { ParseProvider } from '@mm-providers/parse.provider';
 import { XmlFormsContextUtilsService } from '@mm-services/xml-forms-context-utils.service';
 import { Contact } from '@medic/cht-datasource';
 import { TelemetryService } from '@mm-services/telemetry.service';
-import { ContactTypesService } from '@mm-services/contact-types.service';
 
 const DEFAULT_CONTACT_DUPLICATE_EXPRESSION =
   'levenshteinEq(current.name, existing.name, 3) && ' +
@@ -14,7 +13,6 @@ export type DuplicateCheck = { expression?: string; disabled?: boolean };
 })
 export class DeduplicateService {
   constructor(
-    private readonly contactTypesService: ContactTypesService,
     private readonly parseProvider: ParseProvider,
     private readonly telemetryService: TelemetryService,
     private readonly xmlFormsContextUtilsService: XmlFormsContextUtilsService,
@@ -34,6 +32,7 @@ export class DeduplicateService {
 
   getDuplicates(
     current: Contact.v1.Contact,
+    contactType: string,
     siblings: Array<Contact.v1.Contact>,
     duplicateCheck?: DuplicateCheck
   ) {
@@ -49,7 +48,7 @@ export class DeduplicateService {
       });
 
     this.telemetryService.record(
-      ['enketo', 'contacts', this.contactTypesService.getTypeId(current), 'duplicates_found'].join(':'),
+      ['enketo', 'contacts', contactType, 'duplicates_found'].join(':'),
       duplicates.length
     );
 

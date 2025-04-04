@@ -339,6 +339,7 @@ export class FormService {
 
   private async checkForDuplicates(
     doc: Contact.v1.Contact,
+    contactType: string,
     duplicatesAcknowledged: boolean,
     duplicateCheck?: DuplicateCheck
   ): Promise<Array<Contact.v1.Contact>> {
@@ -350,10 +351,10 @@ export class FormService {
 
     try {
       const siblings = await this.contactsService.getSiblings(doc);
-      return this.deduplicateService.getDuplicates(doc, siblings, duplicateCheck);
+      return this.deduplicateService.getDuplicates(doc, contactType, siblings, duplicateCheck);
     } finally {
       perfTracking?.stop({
-        name: ['enketo', 'contacts', this.contactTypesService.getTypeId(doc), 'duplicate_check'].join(':')
+        name: ['enketo', 'contacts', contactType, 'duplicate_check'].join(':')
       });
     }
   }
@@ -361,7 +362,7 @@ export class FormService {
   async saveContact(
     contactInfo: {
       docId: string | undefined;
-      type: string | undefined;
+      type: string;
     },
     formInfo: {
       form: any;
@@ -383,6 +384,7 @@ export class FormService {
 
     const duplicates = await this.checkForDuplicates(
       primaryDoc || preparedDocs.preparedDocs[0],
+      type,
       duplicatesAcknowledged,
       duplicateCheck
     );

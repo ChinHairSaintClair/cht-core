@@ -10,8 +10,8 @@
   <div class="col-sm-8 item-content material" [hidden]="loadingContent || contentError">
     <div class="card">
       <mm-enketo formId="contact-form" [editing]="enketoContact?.docId" [status]="enketoStatus" (onSubmit)="save()" (onCancel)="navigationCancel()">
-        <div duplicate-contacts id="duplicate_contacts" *ngIf="duplicates.length" class="question invalid-value">
-          <p class="results_header invalid-value-msg active">{{ duplicateMessage }}</p>
+        <div duplicate-contacts id="duplicate_contacts" *ngIf="duplicates.length" [ngClass]="{'invalid-value': enketoError}" class="question">
+          <p [ngClass]="{'invalid-value-msg': enketoError}" class="results_header active">{{ duplicateMessage }}</p>
           <mat-accordion multi>
             <ng-container *ngFor="let duplicate of duplicates" >
               <mm-duplicate-contacts [duplicate]="duplicate"></mm-duplicate-contacts>
