@@ -170,18 +170,23 @@ const waitForContactUnloaded = async () => {
   await (await rightPanelSelectors.emptySelection()).waitForDisplayed();
 };
 
-const addPlace = async ({
-  type: typeValue = 'district_hospital',
-  placeName: placeNameValue = 'District Test',
-  contactName: contactNameValue = 'Person1',
-  dob: dobValue = '2000-01-01',
-  phone: phoneValue = '',
-  sex: sexValue = 'Female',
-  role: roleValue = 'CHW',
-  externalID: externalIDValue = '12345678',
-  notes: notesValue = 'Some test notes',
-} = {},
-rightSideAction = true,) => {
+const addPlace = async (
+  {
+    type: typeValue = 'district_hospital',
+    placeName: placeNameValue = 'District Test',
+    contactName: contactNameValue = 'Person1',
+    dob: dobValue = '2000-01-01',
+    phone: phoneValue = '',
+    sex: sexValue = 'Female',
+    role: roleValue = 'CHW',
+    externalID: externalIDValue = '12345678',
+    notes: notesValue = 'Some test notes',
+  } = {},
+  {
+    rightSideAction = true,
+    waitForContactLoaded = true
+  } = {}
+) => {
 
   if (rightSideAction) {
     await commonPage.clickFastActionFAB({ actionId: typeValue });
@@ -203,20 +208,28 @@ rightSideAction = true,) => {
   await commonEnketoPage.setInputValue('External ID', externalIDValue);
   await commonEnketoPage.setTextareaValue('Notes', notesValue);
   await genericForm.submitForm({ waitForPageLoaded: false });
-  const dashedType = typeValue.replace('_', '-');
-  await waitForContactLoaded(dashedType);
+
+  if (waitForContactLoaded) {
+    const dashedType = typeValue.replace('_', '-');
+    await waitForContactLoaded(dashedType);
+  }
 };
 
-const addPerson = async ({
-  name: nameValue = 'Person1',
-  dob: dobValue = '2000-01-01',
-  phone: phoneValue = '',
-  sex: sexValue = 'Female',
-  role: roleValue = 'CHW',
-  externalID: externalIDValue = '12345678',
-  notes: notesValue = 'Some test notes',
-} = {}, waitForSentinel = true) => {
-
+const addPerson = async (
+  {
+    name: nameValue = 'Person1',
+    dob: dobValue = '2000-01-01',
+    phone: phoneValue = '',
+    sex: sexValue = 'Female',
+    role: roleValue = 'CHW',
+    externalID: externalIDValue = '12345678',
+    notes: notesValue = 'Some test notes',
+  } = {},
+  {
+    waitForSentinel = true,
+    waitForContactLoaded = true
+  } = {}
+) => {
   const type = 'person';
   await commonPage.clickFastActionFAB({ actionId: type });
   await commonEnketoPage.setInputValue('Full name', nameValue);
@@ -230,8 +243,10 @@ const addPerson = async ({
   if (waitForSentinel) {
     await sentinelUtils.waitForSentinel();
   }
-  await (await contactCardSelectors.contactCardIcon(type)).waitForDisplayed();
-  return (await contactCardSelectors.contactCardName()).getText();
+  if (waitForContactLoaded) {
+    await (await contactCardSelectors.contactCardIcon(type)).waitForDisplayed();
+    await (await contactCardSelectors.contactCardName()).getText();
+  }
 };
 
 const editPerson = async (currentName, { name, phone, dob }) => {
