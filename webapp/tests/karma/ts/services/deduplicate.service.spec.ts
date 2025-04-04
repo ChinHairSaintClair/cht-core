@@ -6,7 +6,6 @@ import { ParseProvider } from '@mm-providers/parse.provider';
 import { XmlFormsContextUtilsService } from '@mm-services/xml-forms-context-utils.service';
 import { DeduplicateService } from '@mm-services/deduplicate.service';
 import { PipesService } from '@mm-services/pipes.service';
-import { ContactTypesService } from '@mm-services/contact-types.service';
 import { TelemetryService } from '@mm-services/telemetry.service';
 
 const CONTACT = {
