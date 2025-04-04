@@ -61,7 +61,7 @@ describe('Duplicate contact detection', () => {
     await commonPage.goToPeople();
     await contactsPage.addPlace(
       { placeName: districtHospital.name },
-      { rightSideAction: false, waitForContactLoaded: false }
+      { rightSideAction: false, waitForComplete: false }
     );
 
     const duplicates = await genericForm.getDuplicateContactHeadings();
@@ -101,7 +101,7 @@ describe('Duplicate contact detection', () => {
         name: patients[0].name,
         dob: patients[0].date_of_birth,
       },
-      { waitForContactLoaded: false }
+      { waitForComplete: false }
     );
 
     const expectedDuplicates = patients.slice(0, 3);
@@ -173,7 +173,7 @@ describe('Duplicate contact detection', () => {
         dob: '1984-01-01',
         externalID: patients[3].patient_id,
       },
-      { waitForContactLoaded: false }
+      { waitForComplete: false }
     );
 
     const duplicates = await genericForm.getDuplicateContactHeadings();

@@ -184,7 +184,7 @@ const addPlace = async (
   } = {},
   {
     rightSideAction = true,
-    waitForContactLoaded = true
+    waitForComplete = true
   } = {}
 ) => {
 
@@ -209,7 +209,7 @@ const addPlace = async (
   await commonEnketoPage.setTextareaValue('Notes', notesValue);
   await genericForm.submitForm({ waitForPageLoaded: false });
 
-  if (waitForContactLoaded) {
+  if (waitForComplete) {
     const dashedType = typeValue.replace('_', '-');
     await waitForContactLoaded(dashedType);
   }
@@ -227,7 +227,7 @@ const addPerson = async (
   } = {},
   {
     waitForSentinel = true,
-    waitForContactLoaded = true
+    waitForComplete = true
   } = {}
 ) => {
   const type = 'person';
@@ -243,7 +243,7 @@ const addPerson = async (
   if (waitForSentinel) {
     await sentinelUtils.waitForSentinel();
   }
-  if (waitForContactLoaded) {
+  if (waitForComplete) {
     await (await contactCardSelectors.contactCardIcon(type)).waitForDisplayed();
     await (await contactCardSelectors.contactCardName()).getText();
   }
