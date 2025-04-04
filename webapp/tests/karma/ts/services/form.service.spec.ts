@@ -1323,7 +1323,7 @@ describe('Form service', () => {
         contactRecordToJs: sinon.stub(),
       };
 
-      getDuplicates.returnsArg(1);
+      getDuplicates.returnsArg(2);
 
       TestBed.configureTestingModule({
         providers: [

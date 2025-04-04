@@ -8,12 +8,13 @@ import { DeduplicateService } from '@mm-services/deduplicate.service';
 import { PipesService } from '@mm-services/pipes.service';
 import { TelemetryService } from '@mm-services/telemetry.service';
 
+const CONTACT_TYPE = 'some_type';
 const CONTACT = {
   _id: 'new',
   name: 'Test',
   date_of_birth: '2000-01-01',
   parent: { _id: 'parent1' },
-  contact_type: 'some_type',
+  contact_type: CONTACT_TYPE,
   reported_date: 1736845534000
 };
 
@@ -23,7 +24,7 @@ const SIBLINGS = [
     name: 'Test1',
     date_of_birth: '2000-01-31',
     parent: { _id: 'parent1' },
-    contact_type: 'some_type',
+    contact_type: CONTACT_TYPE,
     reported_date: 1736845534001
   },
   {
@@ -31,7 +32,7 @@ const SIBLINGS = [
     name: 'Test2',
     date_of_birth: '2000-01-02',
     parent: { _id: 'parent1' },
-    contact_type: 'some_type',
+    contact_type: CONTACT_TYPE,
     reported_date: 1736845534002
   },
   {
@@ -39,7 +40,7 @@ const SIBLINGS = [
     name: 'Test3',
     date_of_birth: '2022-01-01',
     parent: { _id: 'parent1' },
-    contact_type: 'some_type',
+    contact_type: CONTACT_TYPE,
     reported_date: 1736845534003
   },
   {
@@ -47,7 +48,7 @@ const SIBLINGS = [
     name: 'Testimony',
     date_of_birth: '2000-01-01',
     parent: { _id: 'parent1' },
-    contact_type: 'some_type',
+    contact_type: CONTACT_TYPE,
     reported_date: 1736845534000
   },
 ];
@@ -81,19 +82,19 @@ describe('Deduplicate', () => {
 
   describe('getDuplicates', () => {
     it('should return duplicates based on default matching', () => {
-      const results = service.getDuplicates(CONTACT, SIBLINGS);
+      const results = service.getDuplicates(CONTACT, CONTACT_TYPE, SIBLINGS);
       expect(results).to.deep.equal([SIBLINGS[1], SIBLINGS[0]]);
       expect(telemetryService.record.calledOnceWithExactly('enketo:contacts:some_type:duplicates_found', 2)).to.be.true;
     });
 
     it('should return duplicates based on default matching with invalid expression', () => {
-      const results = service.getDuplicates(CONTACT, SIBLINGS, { expression: true });
+      const results = service.getDuplicates(CONTACT, CONTACT_TYPE, SIBLINGS, { expression: true });
       expect(results).to.deep.equal([SIBLINGS[1], SIBLINGS[0]]);
       expect(telemetryService.record.calledOnceWithExactly('enketo:contacts:some_type:duplicates_found', 2)).to.be.true;
     });
 
     it('should not return duplicates when the expression is disabled', () => {
-      const results = service.getDuplicates(CONTACT, SIBLINGS, { disabled: true });
+      const results = service.getDuplicates(CONTACT, CONTACT_TYPE, SIBLINGS, { disabled: true });
       expect(results).to.be.empty;
       expect(telemetryService.record.calledOnceWithExactly('enketo:contacts:some_type:duplicates_found', 0)).to.be.true;
     });
@@ -101,6 +102,7 @@ describe('Deduplicate', () => {
     it('should return duplicates for custom expression', () => {
       const results = service.getDuplicates(
         CONTACT,
+        CONTACT_TYPE,
         SIBLINGS,
         { expression: 'current.reported_date === existing.reported_date' }
       );
