@@ -99,7 +99,7 @@ describe('Create new lineage structure ', () => {
 
   it('should edit the name of the Family', async () => {
     const name = 'Sumeria';
-    const updatedName = 'Kaleb';
+    const updatedName = 'Kalebb';
 
     await contactPage.selectLHSRowByText(household);
 

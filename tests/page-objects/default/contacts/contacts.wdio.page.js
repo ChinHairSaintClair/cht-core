@@ -266,7 +266,7 @@ const getContactSummaryField = async (fieldName) => {
   await (await contactCardSelectors.contactSummaryContainer()).waitForDisplayed();
   const field = await (await contactCardSelectors.contactSummaryContainer())
     .$(`.cell.${fieldName.toLowerCase().replace(/\./g, '\\.')}`);
-  return await (await field.$('p')).getText();
+  return await (await field.$('p:not(.summary_label)')).getText();
 };
 
 const getPrimaryContactName = async () => {
