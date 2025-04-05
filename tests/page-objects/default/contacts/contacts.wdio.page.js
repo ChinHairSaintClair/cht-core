@@ -245,7 +245,7 @@ const addPerson = async (
   }
   if (waitForComplete) {
     await (await contactCardSelectors.contactCardIcon(type)).waitForDisplayed();
-    await (await contactCardSelectors.contactCardName()).getText();
+    return (await contactCardSelectors.contactCardName()).getText();
   }
 };
 
