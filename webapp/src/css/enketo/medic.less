@@ -445,6 +445,12 @@
   }
 
   #duplicate_contacts {
+    display: none;
+  }
+  .form-footer.end #duplicate_contacts {
+    display: block;
+    text-align: left;
+    margin-bottom: 15px;
     .results_header {
       font-size: @font-large;
       padding: 0;
@@ -472,8 +478,8 @@
         font-size: @font-medium;
         justify-content: center;
         display: flex;
-        .error_msg {
-          color: #a94442;
+        .loading-status {
+          margin: 0;
         }
       }
       mat-action-row {
