@@ -704,6 +704,7 @@ describe('ContactsEdit component', () => {
         type: 'some_contact',
       };
       formService.saveContact.rejects({ some: 'error' });
+      component.duplicates = [{ some: 'duplicates' }];
 
       await component.save();
       expect(setEnketoSavingStatus.callCount).to.equal(2);
@@ -712,6 +713,8 @@ describe('ContactsEdit component', () => {
       expect(formService.saveContact.callCount).to.equal(1);
       expect(setEnketoError.callCount).to.equal(2);
       expect(telemetryService.record.notCalled).to.be.true;
+      // Any duplicates should be cleared when the error is not DuplicatesFoundError
+      expect(component.duplicates).to.be.empty;
     });
 
     it('when saving new contact', async () => {
@@ -972,11 +975,6 @@ describe('ContactsEdit component', () => {
 
       component.toggleDuplicatesAcknowledged();
       expect(component.duplicatesAcknowledged).to.equal(true);
-
-      // Value change will reset duplicates
-      formService.render.args[0][0].valuechangeListener();
-      expect(component.duplicates).to.be.empty;
-      expect(component.duplicatesAcknowledged).to.equal(false);
     });
 
     it('does nothing if no duplicates exist', async () => {

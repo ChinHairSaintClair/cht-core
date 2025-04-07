@@ -302,9 +302,6 @@ export class ContactsEditComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.enketoError) {
       this.globalActions.setEnketoError(null);
     }
-
-    this.duplicatesAcknowledged = false;
-    this.duplicates = [];
   }
 
   private async renderForm(formId: string, titleKey: string) {
@@ -396,6 +393,8 @@ export class ContactsEditComponent implements OnInit, OnDestroy, AfterViewInit {
           .catch((err) => {
             if (err instanceof DuplicatesFoundError) {
               this.duplicates = err.duplicates;
+            } else {
+              this.duplicates = [];
             }
 
             console.error('Error submitting form data', err);
