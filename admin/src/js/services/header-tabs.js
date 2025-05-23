@@ -41,7 +41,14 @@ angular.module('inboxServices').factory('HeaderTabs',
         defaultIcon: 'fa-bar-chart-o',
         translation: 'Analytics',
         permissions: ['can_view_analytics', 'can_view_analytics_tab'],
-      }
+      },
+      {
+        name: 'temp',
+        state: 'temp',
+        defaultIcon: 'fa-envelope',
+        translation: 'Temp',
+        permissions: ['can_view_contacts'],
+      },
     ];
 
     return (settings = {}) => {
