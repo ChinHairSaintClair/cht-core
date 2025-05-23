@@ -57,7 +57,17 @@ export class HeaderTabsService {
       permissions: ['can_view_analytics', 'can_view_analytics_tab'],
       icon: undefined,
       resourceIcon: undefined,
-    }
+    },
+    {
+      name: 'temp',
+      route: 'temp',
+      defaultIcon: 'fa-envelope',
+      translation: 'Temp',
+      permissions: ['can_view_contacts'],
+      typeName: 'temp',
+      icon: undefined,
+      resourceIcon: undefined,
+    },
   ];
 
   /**

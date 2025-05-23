@@ -12,6 +12,8 @@ export class AppRouteGuardProvider implements CanActivate {
   ) {}
 
   canActivate(route: ActivatedRouteSnapshot):Observable<boolean> {
+    console.log('Route: ', route);
+    
     if (!route.data || !route.data.permissions) {
       return of(true);
     }
