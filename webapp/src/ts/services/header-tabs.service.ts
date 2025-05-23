@@ -58,16 +58,16 @@ export class HeaderTabsService {
       icon: undefined,
       resourceIcon: undefined,
     },
-    {
-      name: 'temp',
-      route: 'temp',
-      defaultIcon: 'fa-envelope',
-      translation: 'Temp',
-      permissions: ['can_view_contacts'],
-      typeName: 'temp',
-      icon: undefined,
-      resourceIcon: undefined,
-    },
+    // {
+    //   name: 'temp',
+    //   route: 'temp',
+    //   defaultIcon: 'fa-envelope',
+    //   translation: 'Temp',
+    //   permissions: ['can_view_contacts'],
+    //   typeName: 'temp',
+    //   icon: undefined,
+    //   resourceIcon: undefined,
+    // },
   ];
 
   /**
@@ -79,8 +79,29 @@ export class HeaderTabsService {
    * @returns HeaderTab[]
    */
   get(settings?): HeaderTab[] {
+    console.log('Settings: ', settings);
+    const pages : {
+      [key:string]: { permissions: Array<string> },
+    } = settings?.pages ?? {};
+    const customPages: Array<any> = [];
+    for (const [key, value] of Object.entries(pages)) {
+      const item = {
+        name: key,
+        route: 'custom/' + key,
+        defaultIcon: 'fa-square',
+        translation: key,
+        permissions: value?.permissions ?? [],
+        typeName: key,
+        icon: undefined,
+        resourceIcon: undefined,
+      };
+      customPages.push(item);
+    } 
+    const tabs = [...this.tabs, ...customPages ];
+
     if (!settings?.header_tabs) {
-      return this.tabs;
+      // return this.tabs;
+      return tabs;
     }
 
     this.tabs.forEach(tab => {
@@ -97,7 +118,8 @@ export class HeaderTabsService {
       }
     });
 
-    return this.tabs;
+    // return this.tabs;
+    return tabs;
   }
 
   /**
