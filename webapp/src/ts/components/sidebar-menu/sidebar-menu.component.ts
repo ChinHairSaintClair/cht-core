@@ -18,6 +18,8 @@ import { AuthDirective } from '@mm-directives/auth.directive';
 import { MatIcon } from '@angular/material/icon';
 import { TranslatePipe } from '@ngx-translate/core';
 import { RelativeDatePipe } from '@mm-pipes/date.pipe';
+import { SettingsService } from '@mm-services/settings.service';
+import { HeaderTabsService } from '@mm-services/header-tabs.service';
 
 @Component({
   selector: 'mm-sidebar-menu',
@@ -52,14 +54,17 @@ export class SidebarMenuComponent implements OnInit, OnDestroy {
     private dbSyncService: DBSyncService,
     private modalService: ModalService,
     private router: Router,
+    private settingsService: SettingsService,
+    private headerTabsService: HeaderTabsService
+    
   ) {
     this.globalActions = new GlobalActions(store);
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.adminAppPath = this.locationService.adminPath;
     this.setModuleOptions();
-    this.setSecondaryOptions();
+    await this.setSecondaryOptions();
     this.subscribeToStore();
     this.subscribeToRouter();
   }
@@ -146,7 +151,13 @@ export class SidebarMenuComponent implements OnInit, OnDestroy {
     ];
   }
 
-  private setSecondaryOptions(showPrivacyPolicy = false) {
+  private async setSecondaryOptions(showPrivacyPolicy = false) {
+    const settings = await this.settingsService.get();
+    const tabs = (await this.headerTabsService.getAuthorizedTabs(settings))
+      .filter((tab) => tab.tabType === 'secondary') ?? [];
+
+    console.log('Tabs: ', tabs);
+
     this.secondaryOptions = [
       {
         routerLink: 'trainings',
@@ -178,6 +189,16 @@ export class SidebarMenuComponent implements OnInit, OnDestroy {
         canDisplay: true,
         click: () => this.openFeedback()
       },
+      ...tabs.map((t) => (
+        {
+          ...t, 
+          translationKey: t.translation, 
+          icon: t.icon ?? t.defaultIcon, 
+          hasPermission: t.permissions, 
+          canDisplay: true, 
+          routerLink: t.route
+        }
+      )),
     ];
   }
 }

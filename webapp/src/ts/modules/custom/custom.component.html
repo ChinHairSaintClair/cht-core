@@ -1,0 +1,10 @@
+<mm-tool-bar title="Temp"></mm-tool-bar>
+
+<div class="inner">
+  <div class="inbox page">
+    <div *ngIf="isSupportedTemplate(); else elseBlock" style="width: 100%; height: 100%;">
+      <iframe *ngIf="isIFrameTemplate()" [src]="getIFrameTemplateURL()" width="100%" height="100%" frameborder="0"></iframe>
+    </div>
+    <ng-template #elseBlock><span style="display: block; width: 100%; height: 100%; text-align: center; align-content: center;">Invalid template key</span></ng-template>
+  </div>
+</div>

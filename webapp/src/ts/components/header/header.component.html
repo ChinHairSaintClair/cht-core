@@ -75,6 +75,16 @@
 
           <li role="separator" class="divider" *ngIf="!replicationStatus.disabled"></li>
 
+          <li *ngFor="let tab of secondaryTabs" id="{{tab.name}}-tab">
+            <a routerLink="{{tab.route}}" role="menuitem" tabindex="-1">
+              <!-- <i class="fa {{tab.icon}}"></i> -->
+              <i *ngIf="!tab.resourceIcon" class="fa {{tab.icon}}"><i class="fa {{tab.defaultIcon}}"></i></i>
+              <i *ngIf="tab.resourceIcon" [innerHTML]="tab.resourceIcon | resourceIcon:tab.defaultIcon"></i>
+              <span>{{tab.translation | translate}}</span>
+            </a>
+          </li>
+          <li role="separator" class="divider" *ngIf="secondaryTabs.length > 0"></li>
+
           <li role="presentation">
             <a routerLink="trainings" role="menuitem" tabindex="-1">
               <i class="fa fa-fw fa-graduation-cap"></i>
@@ -115,7 +125,7 @@
       </span>
     </div>
 
-    <div class="tabs small-font">
+    <div id="header_permitted_tabs" class="tabs small-font">
       <a *ngFor="let tab of permittedTabs" routerLink="{{tab.route}}" id="{{tab.name}}-tab" class="{{tab.name}}-tab" [class.selected]="currentTab === tab.name">
         <div class="mm-icon" [class.mm-icon-inverse]="currentTab !== tab.name">
           <span *ngIf="!tab.resourceIcon" class="fa {{tab.icon}}"><span class="fa {{tab.defaultIcon}}"></span></span>

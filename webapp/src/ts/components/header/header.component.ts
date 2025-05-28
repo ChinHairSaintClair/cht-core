@@ -51,6 +51,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   currentTab;
   unreadCount = {};
   permittedTabs: HeaderTab[] = [];
+  secondaryTabs: HeaderTab[] = [];
 
   private globalActions;
 
@@ -98,7 +99,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
       .get()
       .then(settings => this.headerTabsService.getAuthorizedTabs(settings))
       .then(permittedTabs => {
-        this.permittedTabs = permittedTabs;
+        // this.permittedTabs = permittedTabs;
+        this.permittedTabs=[];
+        this.secondaryTabs=[];
+        for (const tab of permittedTabs){
+          if (tab.tabType === 'secondary'){
+            this.secondaryTabs.push(tab);
+          } else {
+            this.permittedTabs.push(tab);
+          }
+        }
+        console.log('Permitted: ', this.permittedTabs);
+        console.log('Secondary: ', this.secondaryTabs);
       });
   }
 
